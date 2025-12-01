@@ -6,6 +6,20 @@
 #include <charconv>
 #include <filesystem>
 #include <system_error>
+#include <chrono>
+
+// GCC 13/Clang 17 polyfill for C++23 std::print
+#if __has_include(<print>)
+    #include <print>
+#else
+    #include <format>
+    namespace std {
+        template <typename... Args>
+        void println(format_string<Args...> fmt, Args&&... args) {
+            cout << format(fmt, std::forward<Args>(args)...) << '\n';
+        }
+    }
+#endif
 
 namespace fs = std::filesystem;
 
@@ -135,9 +149,17 @@ int main(int argc, char *argv[])
 {
     try
     {
-        std::string filename = "input.txt";
+        const auto start = std::chrono::high_resolution_clock::now();
+
+        std::string filename = (argc > 1) ? argv[1] : "input.txt";
         long long result = get_pass(filename);
-        std::cout << result << std::endl;
+        
+        std::cout << "Part 1: " << result << std::endl;
+
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        
+        std::println("Total Time: {} µs", duration.count());
     }
     catch (const std::exception &e)
     {

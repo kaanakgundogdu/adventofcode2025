@@ -48,17 +48,17 @@ auto read_lines(const fs::path& filePath) {
 }
 
 auto part_1_logic(const std::vector<std::string>& data) -> int {
+    const std::vector<std::pair<int, int>> directions{{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                                                      {0, 1},   {1, -1}, {1, 0},  {1, 1}};
     auto answer = 0;
+
     for (size_t i = 0; i < data.size(); ++i) {
         for (size_t j = 0; j < data[i].size(); ++j) {
             if (data[i][j] == '.') {
                 continue;
             }
+
             auto rulo_counter = 0;
-
-            const std::vector<std::pair<int, int>> directions = {
-                {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
-
             for (const auto& [dr, dc] : directions) {
                 int neigh_row_index = static_cast<int>(i) + dr;
                 int neigh_col_index = static_cast<int>(j) + dc;

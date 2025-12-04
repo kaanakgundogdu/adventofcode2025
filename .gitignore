@@ -52,3 +52,6 @@ input.txt
 
 # debug information files
 *.dwo
+
+# clangd
+.cache

@@ -84,10 +84,10 @@ int main(int argc, char* argv[]) {
         const auto start = std::chrono::high_resolution_clock::now();
 
         std::string filename = (argc > 1) ? argv[1] : "input.txt";
-        std::ios_base::sync_with_stdio(false);
-
         const auto grid = read_lines(filename);
+
         auto answer = part_1_logic(grid);
+
         const auto end = std::chrono::high_resolution_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 

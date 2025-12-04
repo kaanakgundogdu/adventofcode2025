@@ -1,18 +1,16 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <string_view>
-#include <ranges>
-#include <algorithm>
 #include <charconv>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <ranges>
+#include <string>
+#include <string_view>
+#include <vector>
 
 struct Range {
     long long start;
     long long end;
 };
-
 
 std::string read_content(const std::filesystem::path& path) {
     std::ifstream file(path);
@@ -30,12 +28,11 @@ long long parse_number(std::string_view sv) {
 
 Range make_range(std::string_view sv) {
     auto pivot = sv.find('-');
-    if (pivot == std::string_view::npos) 
-    {
+    if (pivot == std::string_view::npos) {
         return {0, 0};
     }
 
-    return { parse_number(sv.substr(0, pivot)), parse_number(sv.substr(pivot + 1)) };
+    return {parse_number(sv.substr(0, pivot)), parse_number(sv.substr(pivot + 1))};
 }
 
 bool is_valid_segment(std::string_view sv) {
@@ -43,23 +40,19 @@ bool is_valid_segment(std::string_view sv) {
 }
 
 std::vector<Range> parse_file(std::string_view content) {
-    auto view = content 
-        | std::views::split(',') 
-        | std::views::transform([](auto&& rng) { 
-            return std::string_view(&*rng.begin(), std::ranges::distance(rng)); 
-        })
-        | std::views::filter(is_valid_segment)
-        | std::views::transform(make_range);
+    auto view = content | std::views::split(',') | std::views::transform([](auto&& rng) {
+                    return std::string_view(&*rng.begin(), std::ranges::distance(rng));
+                }) |
+                std::views::filter(is_valid_segment) | std::views::transform(make_range);
 
     return std::vector<Range>(view.begin(), view.end());
 }
 
-
 bool is_repeated_pattern(long long n) {
-    char buf[24]; // ample space for long long (max ~19 digits)
+    char buf[24];  // ample space for long long (max ~19 digits)
     auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), n);
     std::string_view s(buf, ptr - buf);
-    
+
     int len = s.length();
 
     // Check every possible "block size" (sub_len)
@@ -77,7 +70,7 @@ bool is_repeated_pattern(long long n) {
                 }
             }
             // If we finished the loop without breaking, we found a valid pattern
-            if (match) return true; 
+            if (match) return true;
         }
     }
     return false;
@@ -92,7 +85,7 @@ bool is_double_repeated(long long n) {
     return std::string_view(s).substr(0, half) == std::string_view(s).substr(half);
 }
 
-std::tuple<long long,long long> loop_range_elements(const Range& r) {
+std::tuple<long long, long long> loop_range_elements(const Range& r) {
     unsigned long long sum_of_double_repeated = 0;
     unsigned long long sum_of_repeated_pattern = 0;
 
@@ -115,7 +108,7 @@ int main() {
     unsigned long long answer_p2 = 0;
 
     for (const auto& r : ranges) {
-        auto [x, y]  = loop_range_elements(r);
+        auto [x, y] = loop_range_elements(r);
         answer_p1 += x;
         answer_p2 += y;
     }

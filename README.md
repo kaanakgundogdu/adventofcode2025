@@ -2,6 +2,10 @@
 
 This project contains C++ solutions for Advent of Code 2025, built using CMake.
 
+### Day 7 animation
+
+![Day 7](advent_day7gif.gif)
+
 ### 🛠️ Build Instructions
 
 I used an "out-of-source" build to keep the main directory clean. 

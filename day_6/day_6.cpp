@@ -104,8 +104,7 @@ auto part_one_sol(const std::vector<std::string>& data, std::vector<std::string>
     return answer;
 }
 
-auto part_two_sol(const std::vector<std::string>& data,
-                  const std::vector<std::string>& /*symbols*/) {
+auto part_two_sol(const std::vector<std::string>& data, const std::vector<std::string>&) {
     if (data.empty()) return 0ULL;
 
     size_t max_width = 0;

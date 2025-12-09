@@ -49,27 +49,21 @@ std::vector<Range> parse_file(std::string_view content) {
 }
 
 bool is_repeated_pattern(long long n) {
-    char buf[24];  // ample space for long long (max ~19 digits)
+    char buf[24];
     auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf), n);
     std::string_view s(buf, ptr - buf);
 
     int len = s.length();
 
-    // Check every possible "block size" (sub_len)
-    // A block size must be a divisor of the total length
-    // We only go up to len/2 because a pattern must repeat at least twice
     for (int sub_len = 1; sub_len <= len / 2; ++sub_len) {
         if (len % sub_len == 0) {
             bool match = true;
-            // Optimization: Instead of substring compare, just check back-reference
-            // s[i] must equal s[i - block_size]
             for (int i = sub_len; i < len; ++i) {
                 if (s[i] != s[i - sub_len]) {
                     match = false;
                     break;
                 }
             }
-            // If we finished the loop without breaking, we found a valid pattern
             if (match) return true;
         }
     }

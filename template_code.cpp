@@ -1,30 +1,31 @@
-#include <iostream>
+#include <algorithm>
+#include <chrono>
 #include <fstream>
-#include <vector>
+#include <future>
+#include <iostream>
+#include <numeric>
+#include <ranges>
 #include <string>
 #include <string_view>
-#include <numeric>
-#include <algorithm>
 #include <thread>
-#include <future>
-#include <chrono>
-#include <ranges>
+#include <vector>
+
 
 // GCC 13/Clang 17 polyfill for C++23 std::print/println
 #if __has_include(<print>)
-    #include <print>
+#include <print>
 #else
-    #include <format>
-    namespace std {
-        template <typename... Args>
-        void print(format_string<Args...> fmt, Args&&... args) {
-            cout << format(fmt, std::forward<Args>(args)...);
-        }
-        template <typename... Args>
-        void println(format_string<Args...> fmt, Args&&... args) {
-            cout << format(fmt, std::forward<Args>(args)...) << '\n';
-        }
-    }
+#include <format>
+namespace std {
+template <typename... Args>
+void print(format_string<Args...> fmt, Args&&... args) {
+    cout << format(fmt, std::forward<Args>(args)...);
+}
+template <typename... Args>
+void println(format_string<Args...> fmt, Args&&... args) {
+    cout << format(fmt, std::forward<Args>(args)...) << '\n';
+}
+}  // namespace std
 #endif
 
 std::vector<std::string> read_input(std::string_view filename) {
@@ -32,7 +33,7 @@ std::vector<std::string> read_input(std::string_view filename) {
     if (!file.is_open()) {
         throw std::runtime_error(std::format("Failed to open: {}", filename));
     }
-    
+
     std::vector<std::string> lines;
     std::string line;
     while (std::getline(file, line)) {
@@ -44,7 +45,7 @@ std::vector<std::string> read_input(std::string_view filename) {
 // C++23 logic helper: constexpr allows compile-time evaluation if inputs are known
 constexpr long long parse_and_process(std::string_view line) {
     // Example logic
-    return line.length(); 
+    return line.length();
 }
 
 // Parallel worker helper
@@ -60,7 +61,7 @@ T run_parallel(const std::vector<std::string>& data, Func process_chunk) {
     for (unsigned int i = 0; i < threads; ++i) {
         size_t start = i * chunk_size;
         size_t end = std::min(start + chunk_size, count);
-        
+
         if (start >= count) break;
 
         futures.push_back(std::async(std::launch::async, [start, end, &data, process_chunk]() {
@@ -78,12 +79,12 @@ T run_parallel(const std::vector<std::string>& data, Func process_chunk) {
 // just a template not a real solution
 void solve_part_1(const std::vector<std::string>& lines) {
     long long sum = 0;
-    
+
     // C++23: views::enumerate gives index (i) and value (line)
     for (auto [i, line] : std::views::enumerate(lines)) {
         sum += parse_and_process(line);
     }
-    
+
     std::println("Part 1: {}", sum);
 }
 
@@ -104,7 +105,7 @@ void solve_part_2(const std::vector<std::string>& lines) {
 int main(int argc, char* argv[]) {
     try {
         const auto start = std::chrono::high_resolution_clock::now();
-        
+
         std::string filename = (argc > 1) ? argv[1] : "input.txt";
         auto lines = read_input(filename);
 
@@ -113,7 +114,7 @@ int main(int argc, char* argv[]) {
 
         const auto end = std::chrono::high_resolution_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        
+
         std::println("Time: {} µs", duration.count());
 
     } catch (const std::exception& e) {

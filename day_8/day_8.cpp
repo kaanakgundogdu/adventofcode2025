@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <numeric>  // for std::iota
+#include <map>
 #include <ranges>
 #include <string>
 #include <string_view>
@@ -30,33 +30,6 @@ namespace fs = std::filesystem;
 
 struct Position {
     int x, y, z;
-};
-
-// Disjoint Set Union (DSU) / Union-Find helper
-struct DSU {
-    std::vector<size_t> parent;
-    size_t components;
-
-    explicit DSU(size_t n) : parent(n), components(n) {
-        std::iota(parent.begin(), parent.end(), 0);
-    }
-
-    size_t find(size_t i) {
-        if (parent[i] == i) return i;
-        return parent[i] = find(parent[i]);  // Path compression
-    }
-
-    // Returns true if a merge happened (u and v were in different sets)
-    bool unite(size_t i, size_t j) {
-        size_t root_i = find(i);
-        size_t root_j = find(j);
-        if (root_i != root_j) {
-            parent[root_i] = root_j;
-            components--;
-            return true;
-        }
-        return false;
-    }
 };
 
 auto read_lines(const fs::path& filePath) {
@@ -109,11 +82,38 @@ auto convert_input_to_pos(const std::vector<std::string>& data) {
     return positions;
 }
 
+bool is_graph_fully_connected(size_t total_nodes, std::map<size_t, std::vector<size_t>>& adj_map) {
+    if (total_nodes == 0) return false;
+
+    std::map<size_t, bool> visited;
+    std::vector<size_t> queue;
+    queue.reserve(total_nodes);
+
+    size_t start_node = 0;
+    queue.push_back(start_node);
+    visited[start_node] = true;
+
+    size_t count_visited = 0;
+    size_t head = 0;
+
+    while (head < queue.size()) {
+        size_t current_node = queue[head++];
+        count_visited++;
+
+        for (size_t neighbor : adj_map[current_node]) {
+            if (!visited[neighbor]) {
+                visited[neighbor] = true;
+                queue.push_back(neighbor);
+            }
+        }
+    }
+
+    return count_visited == total_nodes;
+}
+
 auto part_two_sol(const std::vector<std::string>& data) {
     auto positions = convert_input_to_pos(data);
-    size_t n = positions.size();
-
-    if (n < 2) return 0LL;
+    size_t positions_size = positions.size();
 
     struct Edge {
         size_t u, v;
@@ -121,10 +121,10 @@ auto part_two_sol(const std::vector<std::string>& data) {
     };
 
     std::vector<Edge> edges;
-    edges.reserve(n * (n - 1) / 2);
+    edges.reserve(positions_size * (positions_size - 1) / 2);
 
-    for (size_t i = 0; i < n; ++i) {
-        for (size_t j = i + 1; j < n; ++j) {
+    for (size_t i = 0; i < positions_size; ++i) {
+        for (size_t j = i + 1; j < positions_size; ++j) {
             long long dx = positions[i].x - positions[j].x;
             long long dy = positions[i].y - positions[j].y;
             long long dz = positions[i].z - positions[j].z;
@@ -134,18 +134,18 @@ auto part_two_sol(const std::vector<std::string>& data) {
 
     std::ranges::sort(edges, {}, &Edge::dist_sq);
 
-    // 3. Kruskal's Algorithm
-    DSU dsu(n);
+    std::map<size_t, std::vector<size_t>> adj_map;
 
     for (const auto& edge : edges) {
-        if (dsu.unite(edge.u, edge.v)) {
-            if (dsu.components == 1) {
-                return static_cast<long long>(positions[edge.u].x) * positions[edge.v].x;
-            }
+        adj_map[edge.u].push_back(edge.v);
+        adj_map[edge.v].push_back(edge.u);
+
+        if (is_graph_fully_connected(positions_size, adj_map)) {
+            return static_cast<long long>(positions[edge.u].x) * positions[edge.v].x;
         }
     }
 
-    return 0LL;  // Should not reach here if graph is connected
+    return 0LL;
 }
 
 auto find_small_distances(const std::vector<Position>& positions, size_t num_connections = 1000) {
@@ -155,10 +155,8 @@ auto find_small_distances(const std::vector<Position>& positions, size_t num_con
     };
 
     std::vector<Edge> all_edges;
-    // Pre-allocate to avoid reallocations
     all_edges.reserve(positions.size() * (positions.size() - 1) / 2);
 
-    // 1. Generate all pairs
     for (size_t i = 0; i < positions.size(); ++i) {
         for (size_t j = i + 1; j < positions.size(); ++j) {
             long long dx = positions[i].x - positions[j].x;
@@ -168,8 +166,6 @@ auto find_small_distances(const std::vector<Position>& positions, size_t num_con
         }
     }
 
-    // 2. Sort to find the shortest distances
-    // Using partial_sort is more efficient if we only need the top K
     if (num_connections < all_edges.size()) {
         std::ranges::partial_sort(all_edges, all_edges.begin() + num_connections, {},
                                   &Edge::dist_sq);
@@ -178,14 +174,12 @@ auto find_small_distances(const std::vector<Position>& positions, size_t num_con
         std::ranges::sort(all_edges, {}, &Edge::dist_sq);
     }
 
-    // 3. Build Adjacency Graph
     std::vector<std::vector<size_t>> adj(positions.size());
     for (const auto& edge : all_edges) {
         adj[edge.u].push_back(edge.v);
         adj[edge.v].push_back(edge.u);
     }
 
-    // 4. Find Connected Components (Circuits)
     std::vector<bool> visited(positions.size(), false);
     std::vector<long long> circuit_sizes;
 
@@ -211,7 +205,6 @@ auto find_small_distances(const std::vector<Position>& positions, size_t num_con
         }
     }
 
-    // 5. Calculate Product of Top 3
     std::ranges::sort(circuit_sizes, std::greater<>());
 
     std::println("Found {} circuits. Largest 3: {}, {}, {}", circuit_sizes.size(),

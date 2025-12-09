@@ -55,3 +55,6 @@ input*.txt
 
 # clangd
 .cache
+
+# rust
+target/

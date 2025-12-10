@@ -5,21 +5,9 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <vector>
 
-// GCC 13/Clang 17 polyfill for C++23 std::print
-#if __has_include(<print>)
-#include <print>
-#else
-#include <format>
-namespace std {
-template <typename... Args>
-void println(format_string<Args...> fmt, Args&&... args) {
-    cout << format(fmt, std::forward<Args>(args)...) << '\n';
-}
-}  // namespace std
-#endif
+#include "utils.h"
 
 namespace fs = std::filesystem;
 
@@ -30,27 +18,6 @@ struct DialResult {
     int pos;
     long long hits;
 };
-
-constexpr DialResult update_dial(int current, char direction, int value) {
-    value %= DIAL_MOD;
-
-    if (direction == 'L') {
-        current -= value;
-        if (current < 0) {
-            current += DIAL_MOD;
-        }
-    } else if (direction == 'R') {
-        current += value;
-        if (current >= DIAL_MOD) {
-            current -= DIAL_MOD;
-        }
-    } else {
-        throw std::runtime_error("Unable get direction!");
-    }
-
-    long long hits = (current == 0) ? 1 : 0;
-    return {current, hits};
-}
 
 std::vector<char> load_file(const fs::path& filePath) {
     std::ifstream file(filePath, std::ios::binary | std::ios::ate);
@@ -75,6 +42,27 @@ std::vector<char> load_file(const fs::path& filePath) {
     }
 
     return buffer;
+}
+
+constexpr DialResult update_dial(int current, char direction, int value) {
+    value %= DIAL_MOD;
+
+    if (direction == 'L') {
+        current -= value;
+        if (current < 0) {
+            current += DIAL_MOD;
+        }
+    } else if (direction == 'R') {
+        current += value;
+        if (current >= DIAL_MOD) {
+            current -= DIAL_MOD;
+        }
+    } else {
+        throw std::runtime_error("Unable get direction!");
+    }
+
+    long long hits = (current == 0) ? 1 : 0;
+    return {current, hits};
 }
 
 long long process_instructions(std::string_view data) {

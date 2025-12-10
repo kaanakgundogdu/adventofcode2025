@@ -1,47 +1,12 @@
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-// GCC 13/Clang 17 polyfill for C++23 std::print
-#if __has_include(<print>)
-#include <print>
-#else
-#include <format>
-namespace std {
-template <typename... Args>
-void println(format_string<Args...> fmt, Args&&... args) {
-    cout << format(fmt, std::forward<Args>(args)...) << '\n';
-}
-}  // namespace std
-#endif
-
-std::vector<std::string> read_lines(const std::string& filename) {
-    if (!std::filesystem::exists(filename)) {
-        throw std::runtime_error("File '" + filename + "' does not exist.");
-    }
-
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        throw std::runtime_error("Could not open file '" + filename + "'.");
-    }
-
-    std::vector<std::string> lines;
-    std::string line;
-    while (std::getline(file, line)) {
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
-        }
-        if (!line.empty()) {
-            lines.push_back(line);
-        }
-    }
-    return lines;
-}
+#include "utils.h"
 
 int64_t calculate_max_bank_joltage(std::string_view bank, size_t k) {
     if (bank.length() < k) {
@@ -97,7 +62,7 @@ int main(int argc, char* argv[]) {
         const auto start = std::chrono::high_resolution_clock::now();
 
         std::string filename = (argc > 1) ? argv[1] : "input.txt";
-        const auto& data = read_lines(filename);
+        const auto& data = aoc::read_lines(filename, "day_3");
 
         part_one_sol(data);
         part_two_sol(data);

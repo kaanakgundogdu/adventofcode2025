@@ -10,12 +10,16 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-add_subdirectory(day_1)
-add_subdirectory(day_2)
-add_subdirectory(day_3)
-add_subdirectory(day_4)
-add_subdirectory(day_5)
-add_subdirectory(day_6)
-add_subdirectory(day_7)
-add_subdirectory(day_8)
-add_subdirectory(day_9)
+include_directories(common)
+
+foreach(day_num RANGE 1 25)
+    set(day_dir "day_${day_num}")
+    
+    # Only add the directory if the folder actually exists
+    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${day_dir}")
+        message(STATUS "Adding ${day_dir}")
+        add_subdirectory(${day_dir})
+    endif()
+
+    
+endforeach()

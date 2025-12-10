@@ -2,7 +2,6 @@
 #include <chrono>
 #include <cstddef>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <map>
 #include <ranges>
@@ -11,20 +10,7 @@
 #include <thread>
 #include <vector>
 
-// GCC 13/Clang 17 polyfill for C++23 std::print
-#if __has_include(<print>)
-#include <print>
-#else
-#include <format>
-namespace std {
-template <typename... Args>
-void println(format_string<Args...> fmt, Args&&... args) {
-    cout << format(fmt, std::forward<Args>(args)...) << '\n';
-}
-}  // namespace std
-#endif
-
-namespace fs = std::filesystem;
+#include "utils.h"
 
 // --- Animation Constants ---
 const int VIEW_HEIGHT = 40;  // Number of lines to show at once (Adjust if terminal is smaller)
@@ -35,22 +21,6 @@ const std::string ANSI_DIM = "\033[90m";         // Dark Gray
 const std::string ANSI_CLEAR = "\033[2J\033[H";  // Clear screen + Home
 const std::string ANSI_HOME = "\033[H";          // Home cursor
 const std::string ANSI_CLEAR_BELOW = "\033[J";   // Clear from cursor to end of screen
-
-auto read_lines(const fs::path& filePath) {
-    if (!fs::exists(filePath)) {
-        throw std::runtime_error("File not found: " + filePath.string());
-    }
-    auto fileSize = fs::file_size(filePath);
-    if (fileSize == 0) throw std::runtime_error("File empty");
-
-    std::ifstream file(filePath);
-    std::string line;
-    std::vector<std::string> file_content;
-    while (std::getline(file, line)) {
-        file_content.push_back(line);
-    }
-    return file_content;
-}
 
 // --- Animation Logic ---
 void animate_solution(const std::vector<std::string>& original_data) {
@@ -204,17 +174,7 @@ auto part_one_sol(const std::vector<std::string>& data) {
 int main(int argc, char* argv[]) {
     try {
         std::string filename = (argc > 1) ? argv[1] : "input.txt";
-        std::vector<std::string> data;
-
-        if (fs::exists(filename)) {
-            data = read_lines(filename);
-        } else {
-            std::cout << "File not found, using example data...\n";
-            data = {".......S.......", "...............", ".......^.......", "...............",
-                    "......^.^......", "...............", ".....^.^.^.....", "...............",
-                    "....^.^...^....", "...............", "...^.^...^.^...", "...............",
-                    "..^...^.....^..", "...............", ".^.^.^.^.^...^.", "..............."};
-        }
+        auto data = aoc::read_lines(filename, "day_7");
 
         const auto start = std::chrono::high_resolution_clock::now();
         std::println("part 1 answer: {} ", part_one_sol(data));

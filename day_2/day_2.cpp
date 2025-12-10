@@ -7,6 +7,8 @@
 #include <string_view>
 #include <vector>
 
+#include "utils.h"
+
 struct Range {
     long long start;
     long long end;
@@ -95,20 +97,35 @@ std::tuple<long long, long long> loop_range_elements(const Range& r) {
     return {sum_of_double_repeated, sum_of_repeated_pattern};
 }
 
-int main() {
-    const std::string content = read_content("input.txt");
-    const auto ranges = parse_file(content);
-    unsigned long long answer_p1 = 0;
-    unsigned long long answer_p2 = 0;
+int main(int argc, char* argv[]) {
+    try {
+        const auto start = std::chrono::high_resolution_clock::now();
 
-    for (const auto& r : ranges) {
-        auto [x, y] = loop_range_elements(r);
-        answer_p1 += x;
-        answer_p2 += y;
+        std::string filename = (argc > 1) ? argv[1] : "input.txt";
+
+        const std::string content = read_content(filename);
+        const auto ranges = parse_file(content);
+
+        unsigned long long answer_p1 = 0;
+        unsigned long long answer_p2 = 0;
+        for (const auto& r : ranges) {
+            auto [x, y] = loop_range_elements(r);
+            answer_p1 += x;
+            answer_p2 += y;
+        }
+
+        std::println("answer_p1: {}", answer_p1);
+        std::println("answer_p2: {}", answer_p2);
+
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+        std::println("Total Time: {} µs", duration.count());
+
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
-
-    std::cout << "answer_p1: " << answer_p1 << "\n";
-    std::cout << "answer_p2: " << answer_p2 << "\n";
 
     return 0;
 }

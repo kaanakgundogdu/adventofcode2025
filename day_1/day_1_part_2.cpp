@@ -5,21 +5,9 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <vector>
 
-// GCC 13/Clang 17 polyfill for C++23 std::print
-#if __has_include(<print>)
-#include <print>
-#else
-#include <format>
-namespace std {
-template <typename... Args>
-void println(format_string<Args...> fmt, Args&&... args) {
-    cout << format(fmt, std::forward<Args>(args)...) << '\n';
-}
-}  // namespace std
-#endif
+#include "utils.h"
 
 namespace fs = std::filesystem;
 
@@ -30,6 +18,31 @@ struct DialResult {
     int pos;
     long long hits;
 };
+
+std::vector<char> load_file(const fs::path& filePath) {
+    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+    if (!file) {
+        throw std::runtime_error("Unable to open file: " + filePath.string());
+    }
+
+    const auto fileSize = file.tellg();
+
+    if (fileSize == -1) {
+        throw std::runtime_error("Failed to determine file size");
+    }
+    if (fileSize == 0) {
+        return {};
+    }
+
+    std::vector<char> buffer(fileSize);
+
+    file.seekg(0, std::ios::beg);
+    if (!file.read(buffer.data(), fileSize)) {
+        throw std::runtime_error("Error reading file content");
+    }
+
+    return buffer;
+}
 
 constexpr DialResult update_dial(int current, char direction, int value) {
     long long hits = 0;
@@ -58,31 +71,6 @@ constexpr DialResult update_dial(int current, char direction, int value) {
     }
 
     return {current, hits};
-}
-
-std::vector<char> load_file(const fs::path& filePath) {
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (!file) {
-        throw std::runtime_error("Unable to open file: " + filePath.string());
-    }
-
-    const auto fileSize = file.tellg();
-
-    if (fileSize == -1) {
-        throw std::runtime_error("Failed to determine file size");
-    }
-    if (fileSize == 0) {
-        return {};
-    }
-
-    std::vector<char> buffer(fileSize);
-
-    file.seekg(0, std::ios::beg);
-    if (!file.read(buffer.data(), fileSize)) {
-        throw std::runtime_error("Error reading file content");
-    }
-
-    return buffer;
 }
 
 long long process_instructions(std::string_view data) {

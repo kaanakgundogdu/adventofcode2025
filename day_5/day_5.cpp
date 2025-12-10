@@ -8,18 +8,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-// GCC 13/Clang 17 polyfill for C++23 std::print
-#if __has_include(<print>)
-#include <print>
-#else
-#include <format>
-namespace std {
-template <typename... Args>
-void println(format_string<Args...> fmt, Args&&... args) {
-    cout << format(fmt, std::forward<Args>(args)...) << '\n';
-}
-}  // namespace std
-#endif
+
+#include "utils.h"
 
 namespace fs = std::filesystem;
 
@@ -58,7 +48,7 @@ auto part_one_sol(const std::vector<unsigned long long>& ids,
 auto get_range_vec(const std::vector<std::string>& data, int index) {
     std::vector<std::pair<unsigned long long, unsigned long long>> vec{};
 
-    for (size_t i = 0; i < index; i++) {
+    for (size_t i = 0; i < static_cast<size_t>(index); i++) {
         std::string copy_line = data[i];
 
         auto pos = copy_line.find('-');

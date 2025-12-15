@@ -26,20 +26,33 @@ struct Shape {
 auto normalize_grids(const std::map<int, std::vector<std::pair<int, int>>>& raw_grids) {
     std::vector<Shape> shapes;
     int max_id = -1;
-    for (const auto& [id, _] : raw_grids) max_id = std::max(max_id, id);
+    for (const auto& [id, _] : raw_grids) {
+        max_id = std::max(max_id, id);
+    }
+
     shapes.resize(max_id + 1);
 
     for (const auto& [id, coords] : raw_grids) {
-        if (coords.empty()) continue;
+        if (coords.empty()) {
+            continue;
+        }
 
         int min_r = 10000, min_c = 10000;
         int max_r = -1, max_c = -1;
 
         for (const auto& p : coords) {
-            if (p.first < min_r) min_r = p.first;
-            if (p.second < min_c) min_c = p.second;
-            if (p.first > max_r) max_r = p.first;
-            if (p.second > max_c) max_c = p.second;
+            if (p.first < min_r) {
+                min_r = p.first;
+            }
+            if (p.second < min_c) {
+                min_c = p.second;
+            }
+            if (p.first > max_r) {
+                max_r = p.first;
+            }
+            if (p.second > max_c) {
+                max_c = p.second;
+            }
         }
 
         Shape s;
@@ -62,8 +75,12 @@ auto get_grids(const std::vector<std::string>& data) {
     int row = 0;
 
     for (const auto& line : data) {
-        if (line.empty()) continue;
-        if (line.find('x') != std::string::npos && line.find(':') != std::string::npos) break;
+        if (line.empty()) {
+            continue;
+        }
+        if (line.find('x') != std::string::npos && line.find(':') != std::string::npos) {
+            break;
+        }
 
         if (line.back() == ':') {
             current_id = std::stoi(line.substr(0, line.size() - 1));
@@ -113,12 +130,17 @@ auto get_containers(const std::vector<std::string>& data) {
 }
 
 bool can_place(const std::vector<bool>& board, int board_w, int r, int c, const Shape& shape) {
-    if (r + shape.height > (int)(board.size() / board_w) || c + shape.width > board_w) return false;
+    if (r + shape.height > (int)(board.size() / board_w) || c + shape.width > board_w) {
+        return false;
+    }
 
     for (const auto& offset : shape.offsets) {
         int idx = (r + offset.first) * board_w + (c + offset.second);
-        if (board[idx]) return false;
+        if (board[idx]) {
+            return false;
+        }
     }
+
     return true;
 }
 
@@ -132,7 +154,9 @@ void toggle_shape(std::vector<bool>& board, int board_w, int r, int c, const Sha
 
 bool solve(std::vector<bool>& board, int board_w, int board_h, const std::vector<int>& piece_ids,
            size_t index, const std::vector<Shape>& shapes) {
-    if (index == piece_ids.size()) return true;
+    if (index == piece_ids.size()) {
+        return true;
+    }
 
     int current_id = piece_ids[index];
     const Shape& shape = shapes[current_id];
@@ -142,12 +166,15 @@ bool solve(std::vector<bool>& board, int board_w, int board_h, const std::vector
             if (can_place(board, board_w, r, c, shape)) {
                 toggle_shape(board, board_w, r, c, shape, true);
 
-                if (solve(board, board_w, board_h, piece_ids, index + 1, shapes)) return true;
+                if (solve(board, board_w, board_h, piece_ids, index + 1, shapes)) {
+                    return true;
+                }
 
                 toggle_shape(board, board_w, r, c, shape, false);
             }
         }
     }
+
     return false;
 }
 
@@ -165,12 +192,17 @@ auto part_one_sol(const std::vector<std::string>& data) {
         for (size_t sid = 0; sid < cont.shape_quantities.size(); ++sid) {
             int qty = cont.shape_quantities[sid];
             if (sid < shapes.size() && shapes[sid].area > 0) {
-                for (int k = 0; k < qty; ++k) pieces.push_back((int)sid);
+                for (int k = 0; k < qty; ++k) {
+                    pieces.push_back((int)sid);
+                }
             }
         }
 
         long long total_area = 0;
-        for (int pid : pieces) total_area += shapes[pid].area;
+        for (int pid : pieces) {
+            total_area += shapes[pid].area;
+        }
+
         long long container_area = (long long)cont.rows * cont.cols;
 
         if (total_area > container_area) {
@@ -194,7 +226,7 @@ int main(int argc, char* argv[]) {
     try {
         const auto start = std::chrono::high_resolution_clock::now();
         std::string filename = (argc > 1) ? argv[1] : "input.txt";
-        const auto& data = aoc::read_lines(filename, "day_10");
+        const auto& data = aoc::read_lines(filename, "day_12");
 
         std::println("Part 1 Answer: {}", part_one_sol(data));
 

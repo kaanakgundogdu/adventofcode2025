@@ -9,7 +9,7 @@ compile_commands.json
 .vscode/
 
 # input files
-input*.txt
+*input*.txt
 
 # Prerequisites
 *.d
